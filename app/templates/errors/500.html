@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Erro Interno{% endblock %}
+{% block content %}
+<div class="error-page">
+    <div class="error-page-code">500</div>
+    <h1>Erro interno do servidor</h1>
+    <p>Algo deu errado ao processar sua solicitação. Nossa equipe já foi notificada.</p>
+    <a href="{{ url_for('dashboard.index') if current_user.is_authenticated else url_for('auth.login') }}" class="btn btn-app-primary">
+        <i class="bi bi-house"></i> Voltar ao início
+    </a>
+</div>
+{% endblock %}
