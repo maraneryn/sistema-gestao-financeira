@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Previsão Financeira{% endblock %}
+{% block page_title %}Previsão Financeira{% endblock %}
+{% block page_subtitle %}<p class="topbar-subtitle">Projeção com base nas contas pendentes</p>{% endblock %}
+
+{% block content %}
+
+<div class="app-card filter-card">
+    <form method="GET" action="{{ url_for('cashflow.forecast') }}" class="filter-form">
+        <div class="filter-field">
+            <label class="form-label">Período de projeção</label>
+            <select name="days" class="form-select">
+                <option value="7" {{ 'selected' if days_ahead == 7 }}>Próximos 7 dias</option>
+                <option value="15" {{ 'selected' if days_ahead == 15 }}>Próximos 15 dias</option>
+                <option value="30" {{ 'selected' if days_ahead == 30 }}>Próximos 30 dias</option>
+                <option value="60" {{ 'selected' if days_ahead == 60 }}>Próximos 60 dias</option>
+                <option value="90" {{ 'selected' if days_ahead == 90 }}>Próximos 90 dias</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-app-primary"><i class="bi bi-funnel"></i> Atualizar</button>
+            <a href="{{ url_for('cashflow.index') }}" class="btn btn-app-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+        </div>
+    </form>
+</div>
+
+<div class="kpi-grid kpi-grid-3">
+    <div class="kpi-card kpi-card-revenue">
+        <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Entradas Previstas</span>
+            <strong class="kpi-value" data-currency="{{ forecast.total_expected_in }}">R$ 0,00</strong>
+        </div>
+    </div>
+    <div class="kpi-card kpi-card-expense">
+        <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Saídas Previstas</span>
+            <strong class="kpi-value" data-currency="{{ forecast.total_expected_out }}">R$ 0,00</strong>
+        </div>
+    </div>
+    <div class="kpi-card kpi-card-net">
+        <div class="kpi-icon"><i class="bi bi-bar-chart-line"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Saldo Projetado</span>
+            <strong class="kpi-value" data-currency="{{ forecast.projected_net }}">R$ 0,00</strong>
+        </div>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header">
+        <h3>Linha do Tempo de Vencimentos</h3>
+    </div>
+    {% if forecast.timeline %}
+    <div class="table-responsive">
+        <table class="table app-table">
+            <thead><tr><th>Data</th><th class="text-end">Entradas</th><th class="text-end">Saídas</th><th class="text-end">Saldo do Dia</th></tr></thead>
+            <tbody>
+            {% for day in forecast.timeline %}
+                <tr>
+                    <td>{{ day.date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-end text-positive" data-currency="{{ day.inflow }}">R$ 0,00</td>
+                    <td class="text-end text-negative" data-currency="{{ day.outflow }}">R$ 0,00</td>
+                    <td class="text-end {{ 'text-positive' if (day.inflow - day.outflow) >= 0 else 'text-negative' }}" data-currency="{{ day.inflow - day.outflow }}">R$ 0,00</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with context %}
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}
