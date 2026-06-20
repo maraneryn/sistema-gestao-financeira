@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Entrar{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block content %}
+<div class="auth-screen">
+    <div class="auth-panel">
+        <div class="auth-panel-brand">
+            <svg width="40" height="40" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="28" height="28" rx="7" fill="var(--color-accent)"/>
+                <path d="M8 19V14.5M14 19V9M20 19V12" stroke="var(--color-navy-900)" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+            <h2>{{ app_name }}</h2>
+        </div>
+        <h3 class="auth-headline">Controle financeiro com clareza</h3>
+        <p class="auth-lede">Fluxo de caixa, contas a pagar e a receber, relatórios gerenciais e indicadores em um único painel, pensado para pequenas e médias empresas.</p>
+        <ul class="auth-feature-list">
+            <li><i class="bi bi-graph-up-arrow"></i> Dashboard executivo em tempo real</li>
+            <li><i class="bi bi-shield-check"></i> Controle de acesso por perfil</li>
+            <li><i class="bi bi-file-earmark-bar-graph"></i> Relatórios em PDF, Excel e CSV</li>
+        </ul>
+    </div>
+
+    <div class="auth-form-wrapper">
+        <div class="auth-form-card">
+            <h1>Bem-vindo de volta</h1>
+            <p class="auth-form-subtitle">Entre com suas credenciais para acessar o sistema.</p>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="form-floating-app">
+                    {{ form.email(class="form-control" ~ (" is-invalid" if form.email.errors else ""), placeholder="seu@email.com", autofocus=true) }}
+                    <label>{{ form.email.label.text }}</label>
+                    {% for error in form.email.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="form-floating-app">
+                    {{ form.password(class="form-control" ~ (" is-invalid" if form.password.errors else ""), placeholder="Senha") }}
+                    <label>{{ form.password.label.text }}</label>
+                    {% for error in form.password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="auth-form-row">
+                    <div class="form-check">
+                        {{ form.remember(class="form-check-input") }}
+                        <label class="form-check-label" for="remember">{{ form.remember.label.text }}</label>
+                    </div>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="auth-link">Esqueceu a senha?</a>
+                </div>
+
+                <button type="submit" class="btn btn-app-primary btn-block">
+                    Entrar <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+
+            <p class="auth-form-footer">
+                Não tem uma conta? <a href="{{ url_for('auth.register') }}" class="auth-link">Cadastre-se</a>
+            </p>
+
+            <div class="auth-demo-hint">
+                <i class="bi bi-info-circle"></i>
+                Acesso de demonstração: <code>admin@empresa.com</code> (defina a senha em <code>.env</code> via <code>ADMIN_PASSWORD</code>)
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
