@@ -1,0 +1,32 @@
+<header class="app-topbar">
+    <button type="button" class="topbar-menu-btn d-lg-none" id="sidebarToggle" aria-label="Abrir menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="topbar-title">
+        <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+        {% block page_subtitle %}{% endblock %}
+    </div>
+
+    <div class="topbar-actions">
+        <span class="topbar-date d-none d-md-inline-flex">
+            <i class="bi bi-calendar3"></i> {{ now.strftime('%d/%m/%Y') }}
+        </span>
+
+        <div class="dropdown">
+            <button class="topbar-user-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="topbar-user-avatar">{{ current_user.name[0] | upper }}</span>
+                <span class="d-none d-md-inline">{{ current_user.name.split(' ')[0] }}</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end app-dropdown">
+                <li><span class="dropdown-header-custom">{{ current_user.email }}</span></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="bi bi-person"></i> Meu Perfil</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}"><i class="bi bi-key"></i> Alterar Senha</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
