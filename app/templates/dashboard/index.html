@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard Executivo{% endblock %}
+{% block page_subtitle %}<p class="topbar-subtitle">Visão consolidada da saúde financeira da empresa</p>{% endblock %}
+
+{% block content %}
+
+<div class="kpi-grid">
+    <div class="kpi-card kpi-card-balance">
+        <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Saldo Atual</span>
+            <strong class="kpi-value" data-currency="{{ summary.balance }}">R$ 0,00</strong>
+            <span class="kpi-sub">Receber - Pagar (pendentes)</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card-revenue">
+        <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Receitas do Mês</span>
+            <strong class="kpi-value" data-currency="{{ summary.month_revenue }}">R$ 0,00</strong>
+            <span class="kpi-sub">{{ now.strftime('%B/%Y') }}</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card-expense">
+        <div class="kpi-icon"><i class="bi bi-graph-down-arrow"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Despesas do Mês</span>
+            <strong class="kpi-value" data-currency="{{ summary.month_expenses }}">R$ 0,00</strong>
+            <span class="kpi-sub">{{ now.strftime('%B/%Y') }}</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-card-net">
+        <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+        <div class="kpi-body">
+            <span class="kpi-label">Lucro Líquido (Mês)</span>
+            <strong class="kpi-value" data-currency="{{ summary.month_net }}">R$ 0,00</strong>
+            <span class="kpi-sub">Receitas - Despesas</span>
+        </div>
+    </div>
+</div>
+
+<div class="alert-row">
+    {% if summary.overdue_receivables > 0 %}
+    <a href="{{ url_for('receivable.index', status='vencido') }}" class="alert-chip alert-chip-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        {{ summary.overdue_receivables }} conta(s) a receber vencida(s)
+    </a>
+    {% endif %}
+    {% if summary.overdue_payables > 0 %}
+    <a href="{{ url_for('payable.index', status='vencido') }}" class="alert-chip alert-chip-danger">
+        <i class="bi bi-exclamation-octagon"></i>
+        {{ summary.overdue_payables }} conta(s) a pagar vencida(s)
+    </a>
+    {% endif %}
+    {% if summary.receivables_week > 0 %}
+    <a href="{{ url_for('receivable.index') }}" class="alert-chip alert-chip-info">
+        <i class="bi bi-calendar-event"></i>
+        {{ summary.receivables_week }} a receber nos próximos 7 dias
+    </a>
+    {% endif %}
+    {% if summary.payables_week > 0 %}
+    <a href="{{ url_for('payable.index') }}" class="alert-chip alert-chip-info">
+        <i class="bi bi-calendar-event"></i>
+        {{ summary.payables_week }} a pagar nos próximos 7 dias
+    </a>
+    {% endif %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="app-card chart-card">
+        <div class="app-card-header">
+            <h3>Evolução Mensal</h3>
+            <span class="app-card-header-sub">Receitas vs. Despesas — {{ now.year }}</span>
+        </div>
+        <canvas id="monthlyEvolutionChart" height="110"></canvas>
+    </div>
+
+    <div class="app-card chart-card">
+        <div class="app-card-header">
+            <h3>Evolução Anual</h3>
+            <span class="app-card-header-sub">Últimos 5 anos</span>
+        </div>
+        <canvas id="annualEvolutionChart" height="110"></canvas>
+    </div>
+</div>
+
+<div class="dashboard-grid dashboard-grid-secondary">
+    <div class="app-card chart-card">
+        <div class="app-card-header">
+            <h3>Indicadores Financeiros</h3>
+            <span class="app-card-header-sub">Acumulado de {{ now.year }}</span>
+        </div>
+        <div class="indicator-list">
+            <div class="indicator-item">
+                <span>Faturamento (ano)</span>
+                <strong data-currency="{{ summary.year_revenue }}">R$ 0,00</strong>
+            </div>
+            <div class="indicator-item">
+                <span>Despesas (ano)</span>
+                <strong data-currency="{{ summary.year_expenses }}">R$ 0,00</strong>
+            </div>
+            <div class="indicator-item">
+                <span>Lucro Líquido (ano)</span>
+                <strong data-currency="{{ summary.year_net }}">R$ 0,00</strong>
+            </div>
+            <div class="indicator-item">
+                <span>Margem Operacional</span>
+                <strong>
+                    {% if summary.year_revenue > 0 %}
+                        {{ '%.1f' | format((summary.year_net / summary.year_revenue) * 100) }}%
+                    {% else %}
+                        0,0%
+                    {% endif %}
+                </strong>
+            </div>
+            <div class="indicator-item">
+                <span>Total a Receber (pendente)</span>
+                <strong data-currency="{{ summary.total_receivable_pending }}">R$ 0,00</strong>
+            </div>
+            <div class="indicator-item">
+                <span>Total a Pagar (pendente)</span>
+                <strong data-currency="{{ summary.total_payable_pending }}">R$ 0,00</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-card chart-card">
+        <div class="app-card-header">
+            <h3>Fluxo de Caixa</h3>
+            <span class="app-card-header-sub">Saldo por período</span>
+        </div>
+        <div class="cashflow-period-list">
+            <div class="cashflow-period-item">
+                <span class="cashflow-period-label">Hoje</span>
+                <span class="cashflow-period-net {{ 'text-positive' if cash_flow.daily.net >= 0 else 'text-negative' }}" data-currency="{{ cash_flow.daily.net }}">R$ 0,00</span>
+            </div>
+            <div class="cashflow-period-item">
+                <span class="cashflow-period-label">Esta semana</span>
+                <span class="cashflow-period-net {{ 'text-positive' if cash_flow.weekly.net >= 0 else 'text-negative' }}" data-currency="{{ cash_flow.weekly.net }}">R$ 0,00</span>
+            </div>
+            <div class="cashflow-period-item">
+                <span class="cashflow-period-label">Este mês</span>
+                <span class="cashflow-period-net {{ 'text-positive' if cash_flow.monthly.net >= 0 else 'text-negative' }}" data-currency="{{ cash_flow.monthly.net }}">R$ 0,00</span>
+            </div>
+            <div class="cashflow-period-item">
+                <span class="cashflow-period-label">Este ano</span>
+                <span class="cashflow-period-net {{ 'text-positive' if cash_flow.annual.net >= 0 else 'text-negative' }}" data-currency="{{ cash_flow.annual.net }}">R$ 0,00</span>
+            </div>
+        </div>
+        <a href="{{ url_for('cashflow.index') }}" class="link-arrow">Ver fluxo de caixa completo <i class="bi bi-arrow-right"></i></a>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="app-card">
+        <div class="app-card-header">
+            <h3>Últimas Contas a Receber</h3>
+            <a href="{{ url_for('receivable.index') }}" class="link-arrow">Ver todas <i class="bi bi-arrow-right"></i></a>
+        </div>
+        {% if recent.receivables %}
+        <div class="table-responsive">
+            <table class="table app-table">
+                <thead><tr><th>Descrição</th><th>Vencimento</th><th class="text-end">Valor</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for r in recent.receivables %}
+                    <tr>
+                        <td><a href="{{ url_for('receivable.view', receivable_id=r.id) }}">{{ r.description }}</a></td>
+                        <td>{{ r.due_date.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-end" data-currency="{{ r.amount }}">R$ 0,00</td>
+                        <td><span class="status-pill status-{{ r.status }}">{{ r.status_label }}</span></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {% include 'partials/empty_state.html' with context %}
+        {% endif %}
+    </div>
+
+    <div class="app-card">
+        <div class="app-card-header">
+            <h3>Últimas Contas a Pagar</h3>
+            <a href="{{ url_for('payable.index') }}" class="link-arrow">Ver todas <i class="bi bi-arrow-right"></i></a>
+        </div>
+        {% if recent.payables %}
+        <div class="table-responsive">
+            <table class="table app-table">
+                <thead><tr><th>Descrição</th><th>Vencimento</th><th class="text-end">Valor</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for p in recent.payables %}
+                    <tr>
+                        <td><a href="{{ url_for('payable.view', payable_id=p.id) }}">{{ p.description }}</a></td>
+                        <td>{{ p.due_date.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-end" data-currency="{{ p.amount }}">R$ 0,00</td>
+                        <td><span class="status-pill status-{{ p.status }}">{{ p.status_label }}</span></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            {% include 'partials/empty_state.html' with context %}
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.__dashboardData = {
+        monthlyLabels: {{ monthly_evolution | map(attribute='month_name') | list | tojson }},
+        monthlyRevenue: {{ monthly_evolution | map(attribute='revenue') | list | tojson }},
+        monthlyExpenses: {{ monthly_evolution | map(attribute='expenses') | list | tojson }},
+        annualLabels: {{ annual_evolution | map(attribute='year') | list | tojson }},
+        annualRevenue: {{ annual_evolution | map(attribute='revenue') | list | tojson }},
+        annualExpenses: {{ annual_evolution | map(attribute='expenses') | list | tojson }}
+    };
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
