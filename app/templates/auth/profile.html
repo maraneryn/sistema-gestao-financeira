@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Meu Perfil{% endblock %}
+{% block page_title %}Meu Perfil{% endblock %}
+{% block content %}
+<div class="page-narrow">
+    <div class="app-card profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">{{ user.name[0] | upper }}</div>
+            <div>
+                <h2>{{ user.name }}</h2>
+                <span class="badge-role badge-role-{{ user.role }}">{{ user.role_label }}</span>
+            </div>
+        </div>
+
+        <dl class="profile-details">
+            <dt>E-mail</dt>
+            <dd>{{ user.email }}</dd>
+
+            <dt>Conta criada em</dt>
+            <dd>{{ user.created_at.strftime('%d/%m/%Y às %H:%M') }}</dd>
+
+            <dt>Último acesso</dt>
+            <dd>{{ user.last_login.strftime('%d/%m/%Y às %H:%M') if user.last_login else 'Primeiro acesso' }}</dd>
+
+            <dt>Status</dt>
+            <dd>
+                {% if user.is_active %}
+                    <span class="status-pill status-active">Ativo</span>
+                {% else %}
+                    <span class="status-pill status-inactive">Inativo</span>
+                {% endif %}
+            </dd>
+        </dl>
+
+        <div class="form-actions">
+            <a href="{{ url_for('auth.change_password') }}" class="btn btn-app-primary">
+                <i class="bi bi-key"></i> Alterar Senha
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
