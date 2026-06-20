@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Fluxo de Caixa{% endblock %}
+{% block page_title %}Fluxo de Caixa{% endblock %}
+{% block page_subtitle %}<p class="topbar-subtitle">Entradas, saídas e saldo ao longo do tempo</p>{% endblock %}
+
+{% block content %}
+
+<div class="app-card filter-card">
+    <form method="GET" action="{{ url_for('cashflow.index') }}" class="filter-form">
+        <div class="filter-field">
+            <label class="form-label">Data inicial</label>
+            <input type="date" name="date_start" class="form-control" value="{{ date_start.isoformat() }}">
+        </div>
+        <div class="filter-field">
+            <label class="form-label">Data final</label>
+            <input type="date" name="date_end" class="form-control" value="{{ date_end.isoformat() }}">
+        </div>
+        <div class="filter-field">
+            <label class="form-label">Agrupar por</label>
+            <select name="period" class="form-select">
+                <option value="daily" {{ 'selected' if period == 'daily' }}>Diário</option>
+                <option value="weekly" {{ 'selected' if period == 'weekly' }}>Semanal</option>
+                <option value="monthly" {{ 'selected' if period == 'monthly' }}>Mensal</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-app-primary"><i class="bi bi-funnel"></i> Filtrar</button>
+            <a href="{{ url_for('cashflow.forecast') }}" class="btn btn-app-secondary"><i class="bi bi-graph-up"></i> Previsão</a>
+        </div>
+    </form>
+</div>
+
+<div class="app-card chart-card">
+    <div class="app-card-header">
+        <h3>Saldo Acumulado</h3>
+        <span class="app-card-header-sub">{{ date_start.strftime('%d/%m/%Y') }} a {{ date_end.strftime('%d/%m/%Y') }}</span>
+    </div>
+    <canvas id="cashFlowBalanceChart" height="100"></canvas>
+</div>
+
+<div class="app-card chart-card">
+    <div class="app-card-header">
+        <h3>Entradas vs. Saídas por {{ {'daily': 'Dia', 'weekly': 'Semana', 'monthly': 'Mês'}.get(period, 'Período') }}</h3>
+    </div>
+    <canvas id="cashFlowBarChart" height="100"></canvas>
+</div>
+
+<div class="app-card">
+    <div class="app-card-header">
+        <h3>Histórico Detalhado</h3>
+    </div>
+    {% if history %}
+    <div class="table-responsive">
+        <table class="table app-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th class="text-end">Entradas</th>
+                    <th class="text-end">Saídas</th>
+                    <th class="text-end">Saldo do Dia</th>
+                    <th class="text-end">Saldo Acumulado</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for day in history | reverse %}
+                <tr>
+                    <td>{{ day.date.strftime('%d/%m/%Y') }}</td>
+                    <td class="text-end text-positive" data-currency="{{ day.inflow }}">R$ 0,00</td>
+                    <td class="text-end text-negative" data-currency="{{ day.outflow }}">R$ 0,00</td>
+                    <td class="text-end {{ 'text-positive' if day.net >= 0 else 'text-negative' }}" data-currency="{{ day.net }}">R$ 0,00</td>
+                    <td class="text-end fw-semibold {{ 'text-positive' if day.balance >= 0 else 'text-negative' }}" data-currency="{{ day.balance }}">R$ 0,00</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with context %}
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.__cashFlowData = {
+        dates: {{ history | map(attribute='date') | map('string') | list | tojson }},
+        balances: {{ history | map(attribute='balance') | list | tojson }},
+        periodLabels: {{ balance_by_period | map(attribute='label') | list | tojson }},
+        periodInflow: {{ balance_by_period | map(attribute='inflow') | list | tojson }},
+        periodOutflow: {{ balance_by_period | map(attribute='outflow') | list | tojson }}
+    };
+</script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/cashflow.js') }}"></script>
+{% endblock %}
