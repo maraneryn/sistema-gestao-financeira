@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Criar Conta{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block content %}
+<div class="auth-screen">
+    <div class="auth-panel">
+        <div class="auth-panel-brand">
+            <svg width="40" height="40" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="28" height="28" rx="7" fill="var(--color-accent)"/>
+                <path d="M8 19V14.5M14 19V9M20 19V12" stroke="var(--color-navy-900)" stroke-width="2.4" stroke-linecap="round"/>
+            </svg>
+            <h2>{{ app_name }}</h2>
+        </div>
+        <h3 class="auth-headline">Crie sua conta em minutos</h3>
+        <p class="auth-lede">Novos usuários iniciam com perfil de Visualizador. Um administrador pode elevar seu nível de acesso depois.</p>
+        <ul class="auth-feature-list">
+            <li><i class="bi bi-lock"></i> Senhas protegidas com hash seguro</li>
+            <li><i class="bi bi-person-check"></i> Perfis de acesso configuráveis</li>
+            <li><i class="bi bi-clock-history"></i> Auditoria de todas as ações</li>
+        </ul>
+    </div>
+
+    <div class="auth-form-wrapper">
+        <div class="auth-form-card">
+            <h1>Criar nova conta</h1>
+            <p class="auth-form-subtitle">Preencha os dados abaixo para começar.</p>
+
+            <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="form-floating-app">
+                    {{ form.name(class="form-control" ~ (" is-invalid" if form.name.errors else ""), placeholder="Nome completo", autofocus=true) }}
+                    <label>{{ form.name.label.text }}</label>
+                    {% for error in form.name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="form-floating-app">
+                    {{ form.email(class="form-control" ~ (" is-invalid" if form.email.errors else ""), placeholder="seu@email.com") }}
+                    <label>{{ form.email.label.text }}</label>
+                    {% for error in form.email.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="form-floating-app">
+                    {{ form.password(class="form-control" ~ (" is-invalid" if form.password.errors else ""), placeholder="Senha") }}
+                    <label>{{ form.password.label.text }}</label>
+                    {% for error in form.password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                    <small class="form-hint">Mínimo 8 caracteres, com maiúsculas, minúsculas e números.</small>
+                </div>
+
+                <div class="form-floating-app">
+                    {{ form.confirm_password(class="form-control" ~ (" is-invalid" if form.confirm_password.errors else ""), placeholder="Confirmar senha") }}
+                    <label>{{ form.confirm_password.label.text }}</label>
+                    {% for error in form.confirm_password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-app-primary btn-block">
+                    Criar conta <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+
+            <p class="auth-form-footer">
+                Já tem uma conta? <a href="{{ url_for('auth.login') }}" class="auth-link">Entrar</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
