@@ -1,0 +1,12 @@
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="bi {{ icon | default('bi-inbox') }}"></i>
+    </div>
+    <h3>{{ title | default('Nenhum registro encontrado') }}</h3>
+    <p>{{ message | default('Ainda não há dados para exibir aqui.') }}</p>
+    {% if action_url and action_label %}
+    <a href="{{ action_url }}" class="btn btn-app-primary">
+        <i class="bi bi-plus-lg"></i> {{ action_label }}
+    </a>
+    {% endif %}
+</div>
